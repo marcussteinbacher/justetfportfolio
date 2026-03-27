@@ -1,6 +1,8 @@
 # ETF Portfolio Analysis
 A comprehensive Streamlit-based app for analyzing a portfolio of ETFs for the aggregated country, sector, and holdings exposure.
 
+https://github.com/user-attachments/assets/62fe9982-2c81-402c-a7b2-a9fc759effe4
+
 ## Overview
 - Add/remove ETFs listed on justETF with the number of shares or position value.
 - Automatically calculates the weights based on the position value for the calculation of portfolio exposure and TER.
