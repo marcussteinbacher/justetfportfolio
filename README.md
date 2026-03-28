@@ -10,7 +10,7 @@ https://github.com/user-attachments/assets/62fe9982-2c81-402c-a7b2-a9fc759effe4
 > Adding a position with the number of shares held fetches the latest quote to retrieve the position's value.
 
 ## Installation & Dependencies
-0. Clone repo.
+1. Clone repo.
 ```bash
 cd ./..
 git clone https://github.com/marcussteinbacher/justetfportfolio.git
