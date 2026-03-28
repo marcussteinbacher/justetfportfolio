@@ -1,4 +1,4 @@
-# ETF Portfolio Analysis
+# ETF Portfolio Exposure & Holdings 
 A comprehensive Streamlit-based app for analyzing a portfolio of ETFs for the aggregated country, sector, and holdings exposure.
 
 https://github.com/user-attachments/assets/62fe9982-2c81-402c-a7b2-a9fc759effe4
