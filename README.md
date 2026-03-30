@@ -1,4 +1,6 @@
 # ETF Portfolio Exposure & Holdings 
+[Live Demo](https://justetfportfolio.streamlit.app/)
+
 A comprehensive Streamlit-based app for analyzing a portfolio of ETFs for the aggregated country, sector, and holdings exposure.
 
 https://github.com/user-attachments/assets/62fe9982-2c81-402c-a7b2-a9fc759effe4
@@ -12,21 +14,17 @@ https://github.com/user-attachments/assets/62fe9982-2c81-402c-a7b2-a9fc759effe4
 ## Installation & Dependencies
 1. Clone repo.
 ```bash
-cd ./..
 git clone https://github.com/marcussteinbacher/justetfportfolio.git
+cd justetfportfolio
 ```
-1. Install justetf-scraping. See https://github.com/druzsan/justetf-scraping for further information.
+
+2. Install requirements.
 ```bash
-pip install git+https://github.com/druzsan/justetf-scraping.git
-```
-2. Install streamlit.
-```bash
-pip install streamlit
+pip install -r requirements.txt
 ```
 
 ## Running the Application
 ```bash
-cd justetfportfolio
 streamlit run app.py
 ```
 
