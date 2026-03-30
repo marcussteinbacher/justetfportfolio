@@ -31,6 +31,8 @@ def remove_etf(isin):
     st.session_state.etfs = [etf for etf in st.session_state.etfs if etf.isin != isin]
     st.rerun()
 
+st.header("JustETF Portfolio Holdings")
+st.markdown("Build a portfolio of ETFs listed on [justETF](https://www.justetf.com/) and analyze the aggregated country, sector, and holdings exposure.")
 
 with st.form("input",enter_to_submit=False):
     etf_input = st.selectbox("Select ETF", st.session_state.all_etfs["display"])
