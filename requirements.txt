@@ -1,0 +1,7 @@
+streamlit
+pandas
+requests
+bs4
+xml
+contextlib
+pycountry
