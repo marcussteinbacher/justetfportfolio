@@ -2,10 +2,15 @@ import justetf_scraping as justetf
 from justetf_scraping.etf_profile import List, AllocationItem, ElementTree, BeautifulSoup, _parse_percentage
 import copy
 import streamlit as st
+import requests
 
+BASE_URL = "https://www.justetf.com/en/etf-profile.html"
+DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
 
 # Patch for justetf_scraping
-def parse_allocation_from_ajax_new(xml_response: str, table_id: str, name_testid: str, pct_testid: str
+def parse_allocation_from_ajax_new(xml_response: str, table_testid: str, name_testid: str, pct_testid: str
 ) -> List[AllocationItem]:
 
     allocations = []
@@ -15,7 +20,7 @@ def parse_allocation_from_ajax_new(xml_response: str, table_id: str, name_testid
         components = root.findall("component")
         for component in components:
             soup = BeautifulSoup(component.text, "html.parser")
-            table = soup.find("table",attrs={"data-testid":"etf-holdings_countries_table"}) or soup.find("table",attrs={"data-testid":"etf-holdings_sectors_table"})
+            table = soup.find("table",attrs={"data-testid":table_testid}) #or soup.find("table",attrs={"data-testid":"etf-holdings_sectors_table"})
             if table:
                 rows = soup.find_all("tr", attrs={"data-testid": True})
                 for row in rows:
@@ -33,8 +38,48 @@ def parse_allocation_from_ajax_new(xml_response: str, table_id: str, name_testid
 
     return allocations
 
+
+def _fetch_ajax_data_new(session: requests.Session, isin: str, endpoint: str, counter:int=0) -> Optional[str]:
+    """
+    Fetch expanded data via AJAX request (for countries/sectors load more).
+
+    Args:
+        session: requests Session with cookies from main page
+        isin: The ISIN of the ETF
+        endpoint: The AJAX endpoint path (e.g., 'holdingsSection-countries-loadMoreCountries')
+        element_id: The element ID for Wicket (e.g., 'id6')
+
+    Returns:
+        HTML content from AJAX response, or None if failed
+    """
+
+    #timestamp = int(datetime.timestamp(datetime.now())*1000)
+    ajax_url =f"{BASE_URL}?{counter}-1.0-{endpoint}&isin={isin}&_wicket=1"#&_={timestamp}"
+
+    ajax_headers = {
+        **DEFAULT_HEADERS,
+        "X-Requested-With": "XMLHttpRequest",
+        "Wicket-Ajax": "true",
+        "Wicket-Ajax-Baseurl": f"en/etf-profile.html?isin={isin}",
+        "Accept": "application/xml, text/xml, */*; q=0.01",
+        "Referer": f"{BASE_URL}?isin={isin}",
+    }
+
+    try:
+        resp = session.get(ajax_url, headers=ajax_headers)
+        print(resp)
+        if resp.status_code == 200 and resp.text:
+            #print("Ajax call OK")
+            return resp.text
+    except Exception as e:
+        print(f"AJAX request error: {e}")
+
+    return None
+
 # Monkey patch
-justetf.etf_profile._parse_allocation_from_ajax = parse_allocation_from_ajax_new
+#justetf.etf_profile._parse_allocation_from_ajax = parse_allocation_from_ajax_new
+#justetf.etf_profile._fetch_ajax_data = _fetch_ajax_data_new
+
 
 @st.cache_data(show_spinner="Fetching available ETFs...")
 def get_all_etfs():
@@ -47,7 +92,7 @@ def get_all_etfs():
 class Etf:
     _fetch_kwargs = {
         "include_gettex":False, 
-        "expand_allocations":False
+        "expand_allocations":True
         }
 
     def __init__(self, isin:str, shares:int|None=None,value:float|None=None,**kwargs):

@@ -108,9 +108,7 @@ def _parse_date(value: str) -> Optional[str]:
     return value
 
 
-def _fetch_ajax_data(
-    session: requests.Session, isin: str, endpoint: str, element_id: str
-) -> Optional[str]:
+def _fetch_ajax_data(session: requests.Session, isin: str, endpoint: str, counter:int=0) -> Optional[str]:
     """
     Fetch expanded data via AJAX request (for countries/sectors load more).
 
@@ -123,19 +121,24 @@ def _fetch_ajax_data(
     Returns:
         HTML content from AJAX response, or None if failed
     """
-    ajax_url = f"{BASE_URL}?0-1.0-{endpoint}&isin={isin}&_wicket=1"
+
+    #timestamp = int(datetime.timestamp(datetime.now())*1000)
+    ajax_url =f"{BASE_URL}?{counter}-1.0-{endpoint}&isin={isin}&_wicket=1"#&_={timestamp}"
+
     ajax_headers = {
         **DEFAULT_HEADERS,
         "X-Requested-With": "XMLHttpRequest",
         "Wicket-Ajax": "true",
-        "Wicket-Ajax-BaseURL": f"en/etf-profile.html?isin={isin}",
+        "Wicket-Ajax-Baseurl": f"en/etf-profile.html?isin={isin}",
         "Accept": "application/xml, text/xml, */*; q=0.01",
         "Referer": f"{BASE_URL}?isin={isin}",
     }
 
     try:
         resp = session.get(ajax_url, headers=ajax_headers)
+        print(resp)
         if resp.status_code == 200 and resp.text:
+            #print("Ajax call OK")
             return resp.text
     except Exception as e:
         print(f"AJAX request error: {e}")
@@ -143,48 +146,33 @@ def _fetch_ajax_data(
     return None
 
 
-def _parse_allocation_from_ajax(
-    xml_response: str, table_id: str, name_testid: str, pct_testid: str
+def _parse_allocation_from_ajax(xml_response: str, table_testid: str, name_testid: str, pct_testid: str
 ) -> List[AllocationItem]:
-    """
-    Parse allocation data (countries/sectors) from AJAX XML response.
 
-    Args:
-        xml_response: XML response from AJAX call
-        table_id: ID of the table element (e.g., 'id47')
-        name_testid: data-testid for name element
-        pct_testid: data-testid for percentage element
-
-    Returns:
-        List of AllocationItem dictionaries
-    """
     allocations = []
 
     try:
-        # Parse XML and extract CDATA content for the table
         root = ElementTree.fromstring(xml_response)
-        for component in root.findall(".//component"):
-            if component.get("id") == table_id:
-                html_content = component.text
-                if html_content:
-                    soup = BeautifulSoup(html_content, "html.parser")
-                    rows = soup.find_all("tr", attrs={"data-testid": True})
-                    for row in rows:
-                        name_elem = row.find("td", attrs={"data-testid": name_testid})
-                        pct_elem = row.find("span", attrs={"data-testid": pct_testid})
-                        if name_elem and pct_elem:
-                            name = name_elem.get_text(strip=True)
-                            pct = _parse_percentage(pct_elem.get_text(strip=True))
-                            if name and pct is not None:
-                                allocations.append(
-                                    AllocationItem(name=name, percentage=pct)
-                                )
-                break
+        components = root.findall("component")
+        for component in components:
+            soup = BeautifulSoup(component.text, "html.parser")
+            table = soup.find("table",attrs={"data-testid":table_testid}) #or soup.find("table",attrs={"data-testid":"etf-holdings_sectors_table"})
+            if table:
+                rows = soup.find_all("tr", attrs={"data-testid": True})
+                for row in rows:
+                    name_elem = row.find("td", attrs={"data-testid": name_testid})
+                    pct_elem = row.find("span", attrs={"data-testid": pct_testid})
+                    if name_elem and pct_elem:
+                        name = name_elem.get_text(strip=True)
+                        pct = _parse_percentage(pct_elem.get_text(strip=True))
+                        if name and pct is not None:
+                            allocations.append(
+                                AllocationItem(name=name, percentage=pct)
+                            )
     except Exception as e:
         print(f"Error parsing allocation data: {e}")
 
     return allocations
-
 
 def _parse_allocation_from_soup(
     soup: BeautifulSoup, row_testid: str, name_testid: str, pct_testid: str
@@ -249,16 +237,17 @@ def get_etf_overview(
 
     # Parse basic data from table 2
     basic_data = {}
-    tables = soup.find_all("table")
-    if len(tables) >= 2:
-        table = tables[1]
-        rows = table.find_all("tr")
-        for row in rows:
-            cells = row.find_all(["th", "td"])
-            if len(cells) >= 2:
-                key = cells[0].get_text(strip=True)
-                value = cells[1].get_text(strip=True)
-                basic_data[key] = value
+    basics_table = soup.find("table", attrs={"data-testid": "etf-basics_data_table"})
+    # Für jeded <tr>:
+    # class vallable: class val
+    rows = basics_table.find_all("tr")
+    for row in rows:
+        #print(row)
+        label = row.find("td",class_="vallabel").get_text(strip=True)
+        # Value in 2nd col
+        cols = row.find_all("td")
+        value = cols[-1].get_text(strip=True)
+        basic_data[label] = value
 
     # Parse top 10 holdings
     top_holdings = []
@@ -290,12 +279,13 @@ def get_etf_overview(
     if expand_allocations:
         # Try AJAX for full list
         countries_xml = _fetch_ajax_data(
-            session, isin, "holdingsSection-countries-loadMoreCountries", "id6"
+            session, isin, "holdingsSection-countries-loadMoreCountries"
         )
         if countries_xml:
+            #print("AJAX countries OK")
             countries = _parse_allocation_from_ajax(
                 countries_xml,
-                "id47",
+                "etf-holdings_countries_table",
                 "tl_etf-holdings_countries_value_name",
                 "tl_etf-holdings_countries_value_percentage",
             )
@@ -318,12 +308,12 @@ def get_etf_overview(
     if expand_allocations:
         # Try AJAX for full list
         sectors_xml = _fetch_ajax_data(
-            session, isin, "holdingsSection-sectors-loadMoreSectors", "id7"
+            session, isin, "holdingsSection-sectors-loadMoreSectors"
         )
         if sectors_xml:
             sectors = _parse_allocation_from_ajax(
                 sectors_xml,
-                "id48",
+                "etf-holdings_sectors_table",
                 "tl_etf-holdings_sectors_value_name",
                 "tl_etf-holdings_sectors_value_percentage",
             )
