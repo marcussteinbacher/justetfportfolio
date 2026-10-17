@@ -281,7 +281,10 @@ def get_etf_overview(
         countries_xml = _fetch_ajax_data(
             session, isin, "holdingsSection-countries-loadMoreCountries"
         )
-        if countries_xml:
+        
+        root = ElementTree.fromstring(countries_xml)
+        components = root.findall("component") # if empty, e.g. no load more btn renderd
+        if countries_xml and components:
             #print("AJAX countries OK")
             countries = _parse_allocation_from_ajax(
                 countries_xml,
@@ -310,6 +313,9 @@ def get_etf_overview(
         sectors_xml = _fetch_ajax_data(
             session, isin, "holdingsSection-sectors-loadMoreSectors"
         )
+
+        root = ElementTree.fromstring(sectors_xml)
+        components = root.findall("component")
         if sectors_xml:
             sectors = _parse_allocation_from_ajax(
                 sectors_xml,
