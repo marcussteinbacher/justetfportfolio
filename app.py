@@ -43,7 +43,7 @@ with st.container(border=True):
         is_shares = st.radio("Amount", [True, False], format_func=lambda x: "Shares" if x else "EUR", label_visibility="hidden")
 
     with amount_col:
-        with st.form("input", border=False, enter_to_submit=True):
+        with st.form("input", border=False, enter_to_submit=False):
             if is_shares:
                 amnt_input = st.number_input("Amount", min_value=1, value=1, step=1, label_visibility="visible")
             else:
