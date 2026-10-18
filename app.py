@@ -31,7 +31,7 @@ def remove_etf(isin):
     st.session_state.etfs = [etf for etf in st.session_state.etfs if etf.isin != isin]
     st.rerun()
 
-st.header("JustETF Portfolio Holdings")
+st.image("logo.svg", width=360)
 st.markdown("Build a portfolio of ETFs listed on [justETF](https://www.justetf.com/) and analyze the aggregated country, sector, and holdings exposure.")
 
 with st.container(border=True):
