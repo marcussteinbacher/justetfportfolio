@@ -34,19 +34,24 @@ def remove_etf(isin):
 st.header("JustETF Portfolio Holdings")
 st.markdown("Build a portfolio of ETFs listed on [justETF](https://www.justetf.com/) and analyze the aggregated country, sector, and holdings exposure.")
 
-with st.form("input",enter_to_submit=False):
+with st.container(border=True):
     etf_input = st.selectbox("Select ETF", st.session_state.all_etfs["display"])
-    
-    with st.container(horizontal=True,vertical_alignment="center"):
-        amnt_input = st.number_input("Amount", min_value=0., value=1.,step=0.01)
-        is_shares = st.radio("Amount", [True,False], format_func=lambda x: "Shares" if x else "EUR", label_visibility="hidden")
-    
-    isin = st.session_state.all_etfs.loc[st.session_state.all_etfs["display"] == etf_input]["isin"].values[0]
-    
-    #if isin in [etf.isin for etf in st.session_state.etfs]:
-    #    st.warning("ETF already in portfolio! Position will be updated.")
+    #st.markdown("Amount")
+    amount_col, unit_col = st.columns([2, 1], vertical_alignment="top")
 
-    submit_btn = st.form_submit_button("Add",key="submit_btn")
+    with unit_col:
+        is_shares = st.radio("Amount", [True, False], format_func=lambda x: "Shares" if x else "EUR", label_visibility="hidden")
+
+    with amount_col:
+        with st.form("input", border=False, enter_to_submit=True):
+            if is_shares:
+                amnt_input = st.number_input("Amount", min_value=1, value=1, step=1, label_visibility="visible")
+            else:
+                amnt_input = st.number_input("Amount", min_value=1.0, value=1.0, step=0.01, format="%.2f", label_visibility="visible")
+
+            submit_btn = st.form_submit_button("Add", key="submit_btn")
+
+    isin = st.session_state.all_etfs.loc[st.session_state.all_etfs["display"] == etf_input]["isin"].values[0]
 
     if submit_btn:
         with st.spinner():

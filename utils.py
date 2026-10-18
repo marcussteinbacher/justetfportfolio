@@ -135,8 +135,15 @@ class Etf:
     def __add__(self, other):
         if not self.isin == other.isin:
             raise ValueError("Cannot add different ETFs!")
+
+        if not self.shares or not other.shares:
+            shares = None
+        else:
+            shares = self.shares + other.shares
         
-        return Etf(self.isin, shares=self.shares + other.shares,value=self.value + other.value)
+        value = self.value + other.value
+
+        return Etf(self.isin, shares=shares,value=value)
 
     def __repr__(self) -> str:
         if not self.shares:
