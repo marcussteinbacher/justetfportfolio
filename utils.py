@@ -136,7 +136,7 @@ class Etf:
         if not self.isin == other.isin:
             raise ValueError("Cannot add different ETFs!")
 
-        if not self.shares or not other.shares:
+        if self.shares is None or other.shares is None:
             shares = None
         else:
             shares = self.shares + other.shares
