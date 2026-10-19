@@ -31,7 +31,17 @@ def remove_etf(isin):
     st.session_state.etfs = [etf for etf in st.session_state.etfs if etf.isin != isin]
     st.rerun()
 
-st.image("assets/logo.svg", width=360)
+
+# Logo component to dynamically react to theme
+with open("assets/logo.svg", "r") as f:
+    svg = f.read()
+logo_component = st.components.v2.component(
+    name="logo",
+    html=f'<div style="width:360px">{svg.replace("#1e293b","var(--st-text-color)")}</div>'
+)
+logo_component()
+
+
 st.markdown("*Real exposure. Beyond the ticker.*")
 #st.markdown("Decode your ETF portfolio down to the stock, sector, and soil.")
 st.markdown("Build a portfolio of ETFs listed on [justETF](https://www.justetf.com/) and analyze the aggregated country, sector, and holdings exposure.")
