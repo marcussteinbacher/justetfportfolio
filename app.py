@@ -1,5 +1,6 @@
 import streamlit as st 
 from utils import get_all_etfs, Etf, EtfPortfolio
+from components import logo_component
 
 # Session state
 if "etfs" not in st.session_state:
@@ -33,12 +34,6 @@ def remove_etf(isin):
 
 
 # Logo component to dynamically react to theme
-with open("assets/logo.svg", "r") as f:
-    svg = f.read()
-logo_component = st.components.v2.component(
-    name="logo",
-    html=f'<div style="width:360px">{svg.replace("#1e293b","var(--st-text-color)")}</div>'
-)
 logo_component()
 
 
