@@ -1,6 +1,6 @@
 import streamlit as st 
 from utils import get_all_etfs, Etf, EtfPortfolio
-from components import logo_component
+from components import logo_component, scroll_component
 
 # Initialize session state
 if "curr_amnt" not in st.session_state:
@@ -75,8 +75,11 @@ st.markdown("## Overview", help="In case a position is added with the `Shares` o
 portfolio = EtfPortfolio(st.session_state.etfs)
 for etf in portfolio.etfs:
     with st.container(horizontal=True,vertical_alignment="center"):
-        st.write(etf)
-        st.space("stretch")
+        #st.write(etf)
+
+        scroll_component(str(etf))
+
+        #st.space("stretch")
         if st.button("Remove",type="primary",key=f"del_btn_{etf.isin}"):
             remove_etf(etf.isin)
 
