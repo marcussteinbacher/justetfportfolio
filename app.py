@@ -32,6 +32,8 @@ def remove_etf(isin):
     st.session_state.etfs = [etf for etf in st.session_state.etfs if etf.isin != isin]
     st.rerun()
 
+def update_amount():
+    st.session_state.curr_amnt = amnt_input
 
 # Logo component to dynamically react to theme
 logo_component()
@@ -44,19 +46,20 @@ st.markdown("Build a portfolio of ETFs listed on [justETF](https://www.justetf.c
 with st.container(border=True):
     etf_input = st.selectbox("Select ETF", st.session_state.all_etfs["display"])
     #st.markdown("Amount")
-    amount_col, unit_col = st.columns([2, 1], vertical_alignment="top")
+    amount_col, unit_col = st.columns([2, 1], vertical_alignment="top",gap="small")
+    
+    with st.form("input", border=False, enter_to_submit=False,width="content"):
+        with unit_col:
+            is_shares = st.radio("Amount", [True, False], format_func=lambda x: "Shares" if x else "EUR", label_visibility="hidden",width="stretch",on_change=update_amount)
 
-    with unit_col:
-        is_shares = st.radio("Amount", [True, False], format_func=lambda x: "Shares" if x else "EUR", label_visibility="hidden")
-
-    with amount_col:
-        with st.form("input", border=False, enter_to_submit=False):
+        with amount_col:
+            #curr_amnt = 1.0
             if is_shares:
-                amnt_input = st.number_input("Amount", min_value=1, value=1, step=1, label_visibility="visible")
+                amnt_input = st.number_input("Amount", min_value=1, value=int(st.session_state.curr_amnt), step=1, label_visibility="visible",width="stretch")
             else:
-                amnt_input = st.number_input("Amount", min_value=1.0, value=1.0, step=0.01, format="%.2f", label_visibility="visible")
-
-            submit_btn = st.form_submit_button("Add", key="submit_btn")
+                amnt_input = st.number_input("Amount", min_value=1.0, value=float(st.session_state.curr_amnt), step=0.01, format="%.2f", label_visibility="visible", width="stretch")
+        curr_amnt = amnt_input
+        submit_btn = st.form_submit_button("Add", key="submit_btn")
 
     isin = st.session_state.all_etfs.loc[st.session_state.all_etfs["display"] == etf_input]["isin"].values[0]
 
