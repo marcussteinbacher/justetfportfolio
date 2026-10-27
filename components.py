@@ -1,6 +1,7 @@
 import streamlit as st
+from pathlib import Path
 
-with open("assets/logo.svg", "r") as f:
+with (Path(__file__).parent / "assets" / "logo.svg").open(encoding="utf-8") as f:
     svg = f.read()
 
 logo_css = """
