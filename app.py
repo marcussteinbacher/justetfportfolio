@@ -2,7 +2,9 @@ import streamlit as st
 from utils import get_all_etfs, Etf, EtfPortfolio
 from components import logo_component
 
-# Session state
+# Initialize session state
+if "curr_amnt" not in st.session_state:
+    st.session_state.curr_amnt = 1
 if "etfs" not in st.session_state:
     st.session_state.etfs = []
 if "all_etfs" not in st.session_state:
